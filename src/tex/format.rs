@@ -71,14 +71,14 @@ pub(crate) fn undump(eng: &mut Eng, data: &[u8]) -> bool {
         return false;
     }
     // Optional pdfTeX state (older formats won't have it).
-    if reader.bytes(4) == Some(b"RTXP") {
-        if let (Some(i), Some(d), Some(t)) = (reader.u32(), reader.u32(), reader.u32()) {
-            eng.stomach.pdf_params = super::pdftex::PdfParams {
-                int: i as usize,
-                dimen: d as usize,
-                toks: t as usize,
-            };
-        }
+    if reader.bytes(4) == Some(b"RTXP")
+        && let (Some(i), Some(d), Some(t)) = (reader.u32(), reader.u32(), reader.u32())
+    {
+        eng.stomach.pdf_params = super::pdftex::PdfParams {
+            int: i as usize,
+            dimen: d as usize,
+            toks: t as usize,
+        };
     }
     // Ensure the default pdfTeX color stack exists (not serialized in the format).
     if eng.stomach.backend.color_stacks.is_empty() {
