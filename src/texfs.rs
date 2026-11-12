@@ -78,6 +78,11 @@ impl FileSystem for TexFs {
         if let Some(f) = self.overlay.find(name) {
             return Some(f);
         }
+        for candidate in crate::kpse::candidates(name, kind_of(name)) {
+            if let Some(f) = self.overlay.find(&candidate) {
+                return Some(f);
+            }
+        }
         let direct = Path::new(name);
         if direct.is_absolute() && direct.is_file() {
             let data = fs::read(direct).ok()?;
