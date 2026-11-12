@@ -26,6 +26,11 @@ pub(crate) fn dump(eng: &Eng) -> Vec<u8> {
     let hyphenation = eng.stomach.hyph.encode();
     put_u32(&mut out, hyphenation.len() as u32);
     out.extend_from_slice(&hyphenation);
+    // pdfTeX state needed after format load (params live in eqtb; we need their bases and backend init).
+    out.extend_from_slice(b"RTXP");
+    put_u32(&mut out, eng.stomach.pdf_params.int as u32);
+    put_u32(&mut out, eng.stomach.pdf_params.dimen as u32);
+    put_u32(&mut out, eng.stomach.pdf_params.toks as u32);
     out
 }
 
@@ -62,7 +67,28 @@ pub(crate) fn undump(eng: &mut Eng, data: &[u8]) -> bool {
     let Some(hyphenation) = reader.bytes(len as usize) else {
         return false;
     };
-    eng.stomach.hyph.decode(hyphenation)
+    if !eng.stomach.hyph.decode(hyphenation) {
+        return false;
+    }
+    // Optional pdfTeX state (older formats won't have it).
+    if reader.bytes(4) == Some(b"RTXP") {
+        if let (Some(i), Some(d), Some(t)) = (reader.u32(), reader.u32(), reader.u32()) {
+            eng.stomach.pdf_params = super::pdftex::PdfParams {
+                int: i as usize,
+                dimen: d as usize,
+                toks: t as usize,
+            };
+        }
+    }
+    // Ensure the default pdfTeX color stack exists (not serialized in the format).
+    if eng.stomach.backend.color_stacks.is_empty() {
+        eng.stomach.backend.color_stacks.push(super::backend::ColorStack {
+            mode: super::backend::LiteralMode::Direct,
+            page_start: true,
+            values: vec!["0 g 0 G".to_owned()],
+        });
+    }
+    true
 }
 
 fn put_u32(out: &mut Vec<u8>, value: u32) {

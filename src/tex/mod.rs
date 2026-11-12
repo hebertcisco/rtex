@@ -272,6 +272,25 @@ pub fn set_page_size(eng: &mut Eng, size: PageSize) {
     }
 }
 
+/// Ensures pdfTeX is in PDF-output mode and its default backend state is ready.
+pub fn ensure_pdf_mode(eng: &mut Eng) {
+    // Force \pdfoutput=1 so drivers/backends select the PDF path (rtex produces PDF).
+    let out = eng.stomach.pdf_params.int;
+    if out != 0 {
+        eng.assign_in_place(
+            rtex_core::Loc::IntPar((out + pdftex::int::OUTPUT) as u16),
+            rtex_core::Value::Int(1),
+        );
+    }
+    if eng.stomach.backend.color_stacks.is_empty() {
+        eng.stomach.backend.color_stacks.push(backend::ColorStack {
+            mode: backend::LiteralMode::Direct,
+            page_start: true,
+            values: vec!["0 g 0 G".to_owned()],
+        });
+    }
+}
+
 /// The absolute mode as TeX's `abs(mode)`.
 pub(crate) fn abs_mode(eng: &Eng) -> i32 {
     eng.mode.abs()

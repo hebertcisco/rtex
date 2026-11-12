@@ -186,6 +186,7 @@ pub fn render(fs: Box<dyn FileSystem>, input: &str, options: &RenderOptions) -> 
             engine
         }
     };
+    crate::tex::ensure_pdf_mode(&mut engine);
     if options.preload.is_empty() {
         crate::tex::set_page_size(&mut engine, page_size);
     } else {
