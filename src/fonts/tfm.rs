@@ -413,6 +413,21 @@ impl Tfm {
     pub fn char_range(&self) -> (u8, u8) {
         (self.bc, self.ec)
     }
+
+    /// Returns a copy with character widths increased for letterspacing
+    /// (`\letterspacefont`), adding `round(quad * e / 1000)` to each width.
+    pub fn letterspaced(&self, e: i32) -> Self {
+        let mut copy = self.clone();
+        let quad = self.params.get(5).copied().unwrap_or(0);
+        let delta = ((quad as i64) * (e as i64) + 500) / 1000;
+        let delta = delta as i32;
+        for (i, w) in copy.widths.iter_mut().enumerate() {
+            if i != 0 {
+                *w += delta;
+            }
+        }
+        copy
+    }
 }
 
 #[cfg(test)]
