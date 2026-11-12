@@ -432,12 +432,32 @@ impl Tfm {
     pub fn letterspaced(&self, e: i32) -> Self {
         let mut copy = self.clone();
         let quad = self.params.get(5).copied().unwrap_or(0);
-        let t = i64::from(quad) * i64::from(e);
-        let delta = (if t >= 0 { (t + 500) / 1000 } else { (t - 500) / 1000 }) as i32;
+        let delta = crate::tex::vfont::round_xn(quad, e, 1000);
         for (i, w) in copy.widths.iter_mut().enumerate() {
             if i != 0 {
                 *w += delta;
             }
+        }
+        copy
+    }
+
+    /// Returns a copy with widths, italic corrections and kerns expanded by `e` thousandths
+    /// (`\pdffontexpand`; `auto_expand_font` in pdftex.web). Heights, depths, `\fontdimen`
+    /// parameters and the ligature/kern structure are left alone.
+    pub fn expanded(&self, e: i32) -> Self {
+        let mut copy = self.clone();
+        let m = 1000 + e;
+        let scale = |v: &mut Scaled| {
+            *v = crate::tex::vfont::round_xn(*v, m, 1000);
+        };
+        for w in copy.widths.iter_mut() {
+            scale(w);
+        }
+        for i in copy.italics.iter_mut() {
+            scale(i);
+        }
+        for k in copy.kerns.iter_mut() {
+            scale(k);
         }
         copy
     }
@@ -448,7 +468,7 @@ mod tests {
     use super::*;
     use crate::kpse::{FileKind, Kpathsea, Program};
 
-    fn cmr10(size: i32) -> Option<Tfm> {
+    pub(super) fn cmr10(size: i32) -> Option<Tfm> {
         let mut kpse = Kpathsea::discover(Program::PlainTex);
         let path = kpse.find("cmr10", FileKind::Tfm)?;
         Some(Tfm::parse(&std::fs::read(path).ok()?, size).expect("cmr10 parses"))

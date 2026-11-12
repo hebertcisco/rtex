@@ -309,3 +309,46 @@ fn letterspacefont_and_pdfcopyfont_restrictions_are_enforced() {
         transcript(&r)
     );
 }
+
+#[test]
+fn letterspaced_font_ships_packets_through_the_base_font() {
+    if !tex_live() {
+        return;
+    }
+    let src = "\\font\\base=cmr10\n\\letterspacefont\\ls=\\base by 1000\n\\ls AV TeX.\n\\bye";
+    let r = render_plain(src).expect("render");
+    assert_eq!(r.history, History::Spotless, "{}", transcript(&r));
+    let pdf = r.pdf.as_ref().expect("a PDF was produced");
+    let bytes = pdf.as_slice();
+    let text = String::from_utf8_lossy(bytes);
+    assert!(
+        !text.contains("1000LS") && !text.contains("+1000ls"),
+        "the virtual font must not appear as a PDF font:\n{}",
+        transcript(&r)
+    );
+    assert!(
+        text.contains("/BaseFont /") && text.contains("CMR10"),
+        "the base font must be embedded: no /BaseFont CMR10 found"
+    );
+    assert!(text.contains("/FontFile"), "the base font program must be embedded");
+}
+
+#[test]
+fn pdffontexpand_rejects_conflicting_redefinition_but_allows_identical() {
+    if !tex_live() {
+        return;
+    }
+    let same = render_plain(
+        "\\font\\base=cmr10\n\\pdffontexpand\\base 40 20 2 autoexpand\n\\pdffontexpand\\base 40 20 2 autoexpand\nWidth check.\\bye",
+    );
+    let r = same.expect("render");
+    assert_eq!(r.history, History::Spotless, "{}", transcript(&r));
+
+    let different = render_plain(
+        "\\font\\base=cmr10\n\\pdffontexpand\\base 40 20 2\n\\pdffontexpand\\base 30 20 2\nWidth check.\\bye",
+    );
+    let r = different.expect("render");
+    assert_ne!(r.history, History::Spotless, "{}", transcript(&r));
+    let flat = transcript(&r).replace(['\n', '\r'], "");
+    assert!(flat.contains("different parameters"), "{flat}");
+}

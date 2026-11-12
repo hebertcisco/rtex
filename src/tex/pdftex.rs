@@ -241,6 +241,8 @@ pub(crate) struct FontExpand {
 pub(crate) struct FontCodes {
     pub codes: HashMap<(usize, usize, u32), i32>,
     pub expand: HashMap<usize, FontExpand>,
+    /// `(base font, expansion ratio) -> expanded instance` (pdfTeX's `pdf_font_elink` chains).
+    pub expansions: HashMap<(usize, i32), usize>,
 }
 
 impl FontCodes {
@@ -937,15 +939,48 @@ pub(crate) fn command(eng: &mut Eng) -> Res {
             }
             let auto = eng.scan_keyword("autoexpand")?;
             eng.scan_keyword("selected")?;
-            eng.stomach.font_codes.expand.insert(
-                f,
-                FontExpand {
-                    stretch,
-                    shrink,
-                    step,
-                    auto,
-                },
-            );
+            // Re-setting identical parameters is allowed; different ones are an error,
+            // as pdfTeX's `set_expand_params` does.
+            if let Some(prev) = eng.stomach.font_codes.expand.get(&f).copied() {
+                if prev.stretch != stretch || prev.shrink != shrink || prev.step != step || prev.auto != auto {
+                    pdf_error(
+                        eng,
+                        "font expansion",
+                        "font has been expanded with different parameters",
+                    )?;
+                }
+            } else {
+                // A font that has been used already should be expanded before its first
+                // use; pdfTeX only warns, so rtex does the same.
+                if eng.stomach.document.font(f).is_some()
+                    && eng.stomach.fonts.kind(f) == super::fonts::FontKind::Regular
+                {
+                    pdf_warning(
+                        eng,
+                        "font expansion",
+                        "font should be expanded before its first use",
+                        true,
+                        true,
+                    );
+                }
+                eng.stomach.font_codes.expand.insert(
+                    f,
+                    FontExpand {
+                        stretch,
+                        shrink,
+                        step,
+                        auto,
+                    },
+                );
+                // Create the stretch/shrink limit instances eagerly,
+                // as pdfTeX's `set_expand_params` does.
+                if stretch > 0 {
+                    super::fonts::expand_instance(eng, f, stretch, step, auto)?;
+                }
+                if shrink > 0 {
+                    super::fonts::expand_instance(eng, f, -shrink, step, auto)?;
+                }
+            }
         }
         "pdfglyphtounicode" => {
             let glyph = ext_string(eng)?;

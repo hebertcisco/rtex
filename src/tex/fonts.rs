@@ -19,10 +19,12 @@ pub(crate) enum FontKind {
     /// Loaded from a file with `\font`.
     #[default]
     Regular,
-    /// Created by `\letterspacefont`.
+    /// Created by `\letterspacefont` (a virtual font).
     Letterspaced,
     /// Created by `\pdfcopyfont`.
     Copied,
+    /// An expanded instance created by `\pdffontexpand` (`auto_expand_font`).
+    Expanded,
 }
 
 /// The metrics of every loaded font; index 0 is `\nullfont`.
@@ -31,6 +33,7 @@ pub struct FontStore {
     fonts: Vec<Option<Tfm>>,
     names: Vec<String>,
     kinds: Vec<FontKind>,
+    virtuals: std::collections::HashMap<usize, super::vfont::VirtualFont>,
 }
 
 impl FontStore {
@@ -62,6 +65,15 @@ impl FontStore {
     /// The provenance of font `f`.
     pub(crate) fn kind(&self, f: usize) -> FontKind {
         self.kinds.get(f).copied().unwrap_or_default()
+    }
+
+    /// The virtual-font program of `f`, if any.
+    pub(crate) fn virtuals(&self, f: usize) -> Option<&super::vfont::VirtualFont> {
+        self.virtuals.get(&f)
+    }
+
+    pub(crate) fn insert_virtual(&mut self, f: usize, vf: super::vfont::VirtualFont) {
+        self.virtuals.insert(f, vf);
     }
 
     /// Number of slots, `\nullfont` included.
@@ -124,6 +136,56 @@ pub(crate) fn load_font(eng: &mut Eng, file: &[u32], size: i32) -> Res<Option<Fo
     Ok(Some(info))
 }
 
+/// The font name pdfTeX gives an expanded instance (`expand_font_name`): `base+<e>`.
+fn expand_font_name(base: &str, e: i32) -> String {
+    format!("{base}{e:+}")
+}
+
+/// Creates the expanded limit instance of font `source` at expansion ratio `e`
+/// (`auto_expand_font`/`get_expand_font` in pdftex.web): an anonymous font whose metrics
+/// are the base ones scaled by `1000+e`/1000 and whose map lookup uses the base file
+/// (`font_area[k] := font_area[f]`). Instances are cached per `(source, e)`.
+pub(crate) fn expand_instance(eng: &mut Eng, source: usize, e: i32, step: i32, auto: bool) -> Res<usize> {
+    if let Some(&cached) = eng.stomach.font_codes.expansions.get(&(source, e)) {
+        return Ok(cached);
+    }
+    let Some(base_tfm) = eng.stomach.fonts.get(source).cloned() else {
+        return Ok(source);
+    };
+    let base_info = eng.fonts().get(source).cloned();
+    let Some(base_info) = base_info else {
+        return Ok(source);
+    };
+    let base_name = eng.stomach.fonts.name(source).to_owned();
+    let tfm = base_tfm.expanded(e);
+    let name = expand_font_name(&base_name, e);
+    let slot = eng.fonts().len();
+    let info = FontInfo {
+        name: name.chars().map(u32::from).collect(),
+        file: base_info.file.clone(),
+        size: base_info.size,
+        dsize: base_info.dsize,
+        hyphen_char: base_info.hyphen_char,
+        skew_char: base_info.skew_char,
+        params: base_info.params.clone(),
+        ..FontInfo::null()
+    };
+    eng.stomach.fonts.insert_kind(slot, tfm, base_name, FontKind::Expanded);
+    let f = eng.push_font(info);
+    debug_assert_eq!(f, slot);
+    eng.stomach.font_codes.expand.insert(
+        f,
+        super::pdftex::FontExpand {
+            stretch: e.max(0),
+            shrink: (-e).max(0),
+            step,
+            auto,
+        },
+    );
+    eng.stomach.font_codes.expansions.insert((source, e), f);
+    Ok(f)
+}
+
 /// Creates a letterspaced copy of font `source` (`\letterspacefont`).
 /// `nolig` retags the copy's ligature/kern entries away (`set_no_ligatures`, pdfTeX §1354).
 pub(crate) fn letterspace_font(eng: &mut Eng, source: usize, e: i32, nolig: bool) -> Res<Option<FontInfo>> {
@@ -143,6 +205,11 @@ pub(crate) fn letterspace_font(eng: &mut Eng, source: usize, e: i32, nolig: bool
             true,
         );
     }
+    // The virtual packets are built from the *base* font (pdfTeX: `letter_space_font`
+    // reads the font fresh and attaches local font `f`), with `w = round(quad*e/2000)`.
+    let quad = base_tfm.params().get(5).copied().unwrap_or(0);
+    let (bc, ec) = base_tfm.char_range();
+    let vf = super::vfont::VirtualFont::letterspacing(source, bc, ec, quad, e);
     let mut tfm = base_tfm.letterspaced(e);
     if nolig {
         tfm = tfm.without_lig_kern();
@@ -167,14 +234,23 @@ pub(crate) fn letterspace_font(eng: &mut Eng, source: usize, e: i32, nolig: bool
     };
     // Store base name for PDF/font-file lookup; \fontname uses core FontInfo.name.
     eng.stomach.fonts.insert_kind(f, tfm, base_name, FontKind::Letterspaced);
+    eng.stomach.fonts.insert_virtual(f, vf);
     Ok(Some(info))
 }
 
 /// Creates a copy of font `source` (`\pdfcopyfont`, pdftex.web `copy_font_info`).
 /// Refuses to copy letterspaced fonts and fonts with expansion parameters, as pdfTeX does.
 pub(crate) fn copy_font(eng: &mut Eng, source: usize) -> Res<Option<FontInfo>> {
-    if eng.stomach.fonts.kind(source) == FontKind::Letterspaced {
-        super::pdftex::pdf_error(eng, "\\pdfcopyfont", "cannot copy a letterspaced font")?;
+    if matches!(
+        eng.stomach.fonts.kind(source),
+        FontKind::Letterspaced | FontKind::Expanded
+    ) {
+        let what = if eng.stomach.fonts.kind(source) == FontKind::Letterspaced {
+            "cannot copy a letterspaced font"
+        } else {
+            "cannot copy an expanded font"
+        };
+        super::pdftex::pdf_error(eng, "\\pdfcopyfont", what)?;
         return Ok(None);
     }
     if eng.stomach.font_codes.expand.contains_key(&source) {

@@ -25,6 +25,7 @@ mod regex;
 mod shipout;
 mod show;
 mod stomach;
+pub(crate) mod vfont;
 
 use std::collections::HashMap;
 use std::sync::Arc;

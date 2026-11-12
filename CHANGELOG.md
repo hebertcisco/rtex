@@ -11,6 +11,17 @@ All notable changes to rtex are recorded here. The format follows
 - `\letterspacefont` accepts the `nolig` keyword; the letterspaced copy
   retags ligature/kern entries away (`set_no_ligatures` semantics, pdfTeX
   §1354).
+- Virtual fonts (`virtual_font_type`): `\letterspacefont` creates an internal
+  virtual font whose packet per character is `kern w + setchar c + kern w`
+  (`w = round(quad*e/2000)`), interpreted at shipout; the virtual font never
+  appears as a PDF font. The base font is embedded via the map (with
+  ToUnicode when `\pdfgentounicode=1`), so output matches pdfTeX's packet
+  model instead of the width-adjusted-metrics-only shortcut.
+- `\pdffontexpand` creates the stretch/shrink limit instances eagerly
+  (`auto_expand_font`/`set_expand_params`): metrics cloned and scaled by
+  `1000+e`/1000 for widths/italic corrections/kerns, named `base+<e>`,
+  map lookup through the base file, cached per `(base, e)`. Instances are
+  not copiable and are created once.
 - `\pdfcopyfont` refuses to copy letterspaced fonts and fonts with
   `\pdffontexpand` parameters, as pdfTeX does (`copy_font_info`). Font slots
   now track their provenance (`Regular`/`Letterspaced`/`Copied`).

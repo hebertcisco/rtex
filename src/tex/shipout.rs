@@ -58,7 +58,47 @@ fn vet(g: f64) -> f64 {
 }
 
 impl<'a> Out<'a> {
+    /// Executes the packet of character `ch` of virtual font `font` (`do_vf_packet` in
+    /// pdftex.web): emits the packet-local fonts' glyphs with the kerns applied, returning
+    /// the total advance. `depth` bounds packet recursion as pdfTeX's `vf_max_recursion` does.
+    fn virtual_glyph(&mut self, font: usize, ch: u32, h: Scaled, v: Scaled, depth: u32) -> Scaled {
+        const MAX_VF_RECURSION: u32 = 10;
+        if depth >= MAX_VF_RECURSION {
+            return 0;
+        }
+        let (local_fonts, ops) = {
+            let Some(vf) = self.eng.stomach.fonts.virtuals(font) else {
+                return 0;
+            };
+            match vf.packets.get(&ch) {
+                Some(p) => (vf.local_fonts.clone(), p.clone()),
+                None => {
+                    super::fonts::char_warning(self.eng, font, ch);
+                    return 0;
+                }
+            }
+        };
+        let mut pen = h;
+        for op in ops {
+            match op {
+                super::vfont::VfOp::Kern(w) => pen += w,
+                super::vfont::VfOp::SetChar { local, ch } => {
+                    let f = local_fonts.get((local - 1) as usize).copied().unwrap_or(0);
+                    pen += self.glyph_at(f, ch, pen, v, depth + 1);
+                }
+            }
+        }
+        pen - h
+    }
+
     fn glyph(&mut self, font: usize, ch: u32, h: Scaled, v: Scaled) -> Scaled {
+        self.glyph_at(font, ch, h, v, 0)
+    }
+
+    fn glyph_at(&mut self, font: usize, ch: u32, h: Scaled, v: Scaled, depth: u32) -> Scaled {
+        if self.eng.stomach.fonts.virtuals(font).is_some() {
+            return self.virtual_glyph(font, ch, h, v, depth);
+        }
         let w = self.eng.stomach.fonts.width(font, ch);
         if self.eng.stomach.document.font(font).is_none()
             && let Some(t) = self.eng.stomach.fonts.get(font)
