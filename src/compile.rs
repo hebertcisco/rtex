@@ -337,6 +337,13 @@ pub fn compile(options: &CompileOptions) -> Result<CompileReport, CompileError> 
     let mut rendering = None;
     for pass in 0..options.max_passes.max(1) {
         let mut texfs = TexFs::new(directory, &output_directory, options.engine.program());
+        // Stub microtype when running LaTeX: tracking/expansion need primitives not fully supported yet.
+        if options.engine.is_latex() {
+            texfs.add_virtual(
+                "microtype.sty",
+                b"\\NeedsTeXFormat{LaTeX2e}\\ProvidesPackage{microtype}[9999/01/01 rtex compatibility stub]\\DeclareOption*{}\\ProcessOptions\\relax\\providecommand\\microtypesetup[1]{}\\providecommand\\lsstyle{}\\providecommand\\textls[2][]{#2}\\providecommand\\lslig[1]{#1}\\providecommand\\SetTracking[2][]{}\\providecommand\\SetProtrusion[2][]{}\\providecommand\\SetExpansion[2][]{}\\providecommand\\SetExtraKerning[2][]{}\\providecommand\\SetExtraSpacing[2][]{}\\providecommand\\DisableLigatures[1][]{}\\providecommand\\UseMicrotypeSet[1][]{}\\providecommand\\DeclareMicrotypeSet[2][]{}\\providecommand\\DeclareMicrotypeSetDefault[1][]{}\\providecommand\\DeclareMicrotypeAlias[2]{}\\providecommand\\DeclareMicrotypeBabelHook[2]{}\\providecommand\\DeclareCharacterInheritance[2][]{}\\providecommand\\SetCharacterInheritance[2][]{}\\providecommand\\DeclareMicrotypeVariants[1]{}\\providecommand\\DeclareMicrotypeVariants*{}\\providecommand\\microtypecontext[1]{}\\providecommand\\textmicrotypecontext[2]{#2}\\providecommand\\leftprotrusion{}\\providecommand\\rightprotrusion{}\\endinput\n".to_vec(),
+            );
+        }
         if let Some(data) = &source {
             texfs.add_virtual(&run_name, data.clone());
         }
