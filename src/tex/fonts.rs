@@ -99,6 +99,64 @@ pub(crate) fn load_font(eng: &mut Eng, file: &[u32], size: i32) -> Res<Option<Fo
     Ok(Some(info))
 }
 
+/// Creates a letterspaced copy of font `source` (`\letterspacefont`).
+pub(crate) fn letterspace_font(eng: &mut Eng, source: usize, e: i32) -> Res<Option<FontInfo>> {
+    let Some(base_tfm) = eng.stomach.fonts.get(source).cloned() else {
+        return Ok(None);
+    };
+    let base_info = eng.fonts().get(source).cloned();
+    let Some(base_info) = base_info else {
+        return Ok(None);
+    };
+    let tfm = base_tfm.letterspaced(e);
+    let base_name = eng.stomach.fonts.name(source).to_owned();
+    let mut display_name = base_name.clone();
+    if e >= 0 {
+        display_name.push('+');
+    }
+    display_name.push_str(&e.to_string());
+    display_name.push_str("ls");
+    let f = eng.fonts().len();
+    let info = FontInfo {
+        name: display_name.chars().map(u32::from).collect(),
+        file: base_info.file.clone(),
+        size: base_info.size,
+        dsize: base_info.dsize,
+        hyphen_char: base_info.hyphen_char,
+        skew_char: base_info.skew_char,
+        params: tfm.params().to_vec(),
+        ..FontInfo::null()
+    };
+    // Store base name for PDF/font-file lookup; \fontname uses core FontInfo.name.
+    eng.stomach.fonts.insert(f, tfm, base_name);
+    Ok(Some(info))
+}
+
+/// Creates a copy of font `source` (`\pdfcopyfont`).
+pub(crate) fn copy_font(eng: &mut Eng, source: usize) -> Res<Option<FontInfo>> {
+    let Some(base_tfm) = eng.stomach.fonts.get(source).cloned() else {
+        return Ok(None);
+    };
+    let base_info = eng.fonts().get(source).cloned();
+    let Some(base_info) = base_info else {
+        return Ok(None);
+    };
+    let base_name = eng.stomach.fonts.name(source).to_owned();
+    let f = eng.fonts().len();
+    let info = FontInfo {
+        name: base_info.name.clone(),
+        file: base_info.file.clone(),
+        size: base_info.size,
+        dsize: base_info.dsize,
+        hyphen_char: base_info.hyphen_char,
+        skew_char: base_info.skew_char,
+        params: base_info.params.clone(),
+        ..FontInfo::null()
+    };
+    eng.stomach.fonts.insert(f, base_tfm, base_name);
+    Ok(Some(info))
+}
+
 /// The `\fontdimen` parameters of `f` as the mouth holds them (assignments included).
 pub(crate) fn param(eng: &Eng, f: usize, n: usize) -> Scaled {
     eng.fonts().get(f).and_then(|i| i.params.get(n)).copied().unwrap_or(0)
