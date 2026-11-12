@@ -1,0 +1,29 @@
+\catcode`\{=1 \catcode`\}=2 \catcode`\#=6
+\input hyphen
+\font\tenrm=cmr10 \tenrm \showboxdepth=100 \showboxbreadth=100
+\hsize=200pt \parindent=20pt \tolerance=200 \pretolerance=100
+\baselineskip=12pt \lineskip=1pt \lineskiplimit=0pt \parskip=0pt plus 1pt
+\parfillskip=0pt plus 1fil \hyphenpenalty=50 \exhyphenpenalty=50
+\linepenalty=10 \adjdemerits=10000 \doublehyphendemerits=10000 \finalhyphendemerits=5000
+\clubpenalty=150 \widowpenalty=150 \interlinepenalty=0 \brokenpenalty=100
+\hbadness=1000 \hfuzz=0.1pt
+\tracingparagraphs=1 \tracingonline=1
+\def\text{The algorithm considers every feasible breakpoint in the paragraph
+and chooses the sequence of breaks that minimizes the total demerits, taking
+hyphenation, penalties, and the stretchability of interword glue into account.}
+\text\par
+\showlists
+\hsize=120pt \text\par
+\looseness=1 \text\par
+\hangindent=30pt \hangafter=-2 \text\par
+\parshape 3 0pt 150pt 10pt 140pt 20pt 100pt \text\par
+\interlinepenalties 3 101 102 103 \clubpenalties 2 1000 2000 \widowpenalties 1 3000 \text\par
+\leftskip=0pt plus 20pt \rightskip=0pt plus 20pt \text\par
+\leftskip=0pt \rightskip=0pt
+\hyphenation{al-go-rithm} \hsize=60pt \text\par
+\emergencystretch=10pt \tolerance=100 \hsize=50pt \text\par
+\noindent\hbox to 300pt{x}\par
+\hsize=100pt \hskip 0pt minus 1fil Infinite shrink here.\par
+\uchyph=0 \hsize=40pt Algorithm Hyphenation.\par
+\showlists
+\end

@@ -1,0 +1,27 @@
+\catcode`\{=1 \catcode`\}=2 \catcode`\#=6
+\font\tenrm=cmr10 \tenrm \showboxdepth=100 \showboxbreadth=100
+\hsize=100pt \vsize=60pt \maxdepth=2pt \topskip=10pt \baselineskip=12pt
+\parindent=0pt \parfillskip=0pt plus 1fil \tolerance=10000
+\tracingpages=1 \tracingonline=1 \tracingoutput=1
+\count0=1
+\output={\message{[output \the\outputpenalty\space top:\topmark\space first:\firstmark\space bot:\botmark]}%
+  \showbox255 \showbox100 \shipout\box255 \global\advance\count0 by 1 \unvbox100}
+\skip100=6pt \dimen100=20pt \count100=1000
+Line one\mark{a}\par Line two\par
+Line three\insert100{\hbox{note one}\hbox{note two}\hbox{note three}}\par
+Line four\mark{b}\par Line five\par\penalty-500 Line six\par
+\vskip 0pt plus 1fil Line seven\marks3{c}\par
+\penalty-10000
+\showlists
+Short\par
+\setbox1=\vbox{\hbox{a}\penalty0\hbox{b}\mark{x}\penalty0\hbox{c}\hbox{d}}
+\setbox2=\vsplit1 to 15pt \showbox1 \showbox2
+\message{[\splitfirstmark,\splitbotmark,\splitfirstmarks0]}
+\setbox3=\vbox{\vskip 0pt minus 1fil\hbox{a}}
+\holdinginserts=1 More text\insert100{\hbox{held}}\par\penalty-10000
+\holdinginserts=0
+\output={\global\setbox9=\box255}\maxdeadcycles=2 Dead\par\penalty-10000
+\output={\shipout\box255}
+\setbox255=\hbox{x}\penalty-10000
+Final\par
+\end

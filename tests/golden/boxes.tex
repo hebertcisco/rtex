@@ -1,0 +1,21 @@
+\catcode`\{=1 \catcode`\}=2 \catcode`\#=6
+\font\tenrm=cmr10 \tenrm \showboxdepth=100 \showboxbreadth=100
+\setbox1=\hbox to 50pt{A\hskip 3pt plus 1fil ffi\kern2pt V\vrule width 1pt\penalty5 }
+\showbox1
+\setbox2=\vbox{\hrule height 2pt \hbox{x}\vskip 4pt minus 1pt\copy1}
+\showbox2
+\setbox3=\vtop{\hbox{Ay}\hbox{To}}\showbox3
+\setbox4=\hbox spread 2pt{\raise2pt\hbox{a}\lower1pt\box3 \unhcopy1}\showbox4
+\setbox5=\hbox to 5pt{Overfull text}\showbox5
+\setbox6=\hbox to 100pt{a b}
+\setbox7=\vbox to 20pt{\hbox{a}\vss\hbox{b}}\showbox7
+\setbox8=\hbox{\leaders\hrule\hskip 10pt\cleaders\hbox{.}\hfil x}\showbox8
+\setbox9=\hbox{AV `a' -- --- ``q'' fi fl ff \char`A \accent"7F a \accent18 A x\/}\showbox9
+\setbox9=\hbox{a\discretionary{b}{c}{d}e\-f}\showbox9
+\setbox9=\hbox{\vadjust{\kern1pt}\mark{m}\insert100{\hbox{i}}x}\showbox9
+\showlists
+\wd1=10pt \message{[\the\wd1,\the\ht2,\the\dp3]}
+\setbox9=\vbox{\unvbox2 \unskip\unpenalty\unkern}\showbox9
+\setbox9=\hbox{\lastbox}\showbox9
+\hbox{abc}\showlists
+\end

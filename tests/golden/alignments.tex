@@ -1,0 +1,18 @@
+\catcode`\{=1 \catcode`\}=2 \catcode`\#=6 \catcode`\&=4
+\font\tenrm=cmr10 \tenrm \showboxdepth=100 \showboxbreadth=100
+\hsize=200pt \parindent=0pt \baselineskip=12pt \tracingonline=1
+\setbox1=\vbox{\tabskip=2pt plus 3pt\halign to 150pt{#\hfil\tabskip=1pt plus 1fil&\hfil#\hfil&&[#]\cr
+a&b&c&d\cr\noalign{\kern3pt}
+long entry&x\cr
+\omit omitted&\span spanned across\cr
+1&2&3&4&5\cr\hrule
+\multispan&x\cr}}
+\showbox1
+\setbox2=\hbox{\valign{#\vfil&\hbox{#}\cr \hbox{top}&a\cr \hbox{T}\vskip 5pt&b\cr}}
+\showbox2
+\setbox3=\vbox{\halign{#\cr\showlists x\cr}}
+\setbox4=\vbox{\halign{#&#\cr a&b&c\cr}}\showbox4
+\setbox5=\vbox{\halign spread 10pt{\hfil#\hfil\cr wide entry here\cr\noalign{\hrule}y\cr}}\showbox5
+\setbox6=\vbox{\everycr{\noalign{\kern1pt}}\halign{#\cr a\cr b\cr}}\showbox6
+\setbox7=\vbox{\halign{#\cr\def\x{\cr}a\x b\cr}}\showbox7
+\end

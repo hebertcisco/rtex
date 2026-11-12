@@ -1,0 +1,32 @@
+\input plain
+\tracingonline=1 \showboxdepth=100 \showboxbreadth=10000 \tracingoutput=1
+\scrollmode
+\setbox1=\hbox{$x^1^2_3_4$} \showbox1
+\setbox1=\hbox{$a\right) b\middle| c$} \showbox1
+\setbox1=\hbox{$\left a\right.$} \showbox1
+\setbox1=\hbox{$a\over b\over c$} \showbox1
+\setbox1=\hbox{$\limits x+\sum\nolimits_1^2 y\displaylimits$} \showbox1
+\setbox1=\hbox{$\fam5 x+{\rm A}\it b$} \showbox1
+\setbox1=\hbox{$\fam12 x+\mathchar"0C41$} \showbox1
+{\textfont3=\tenrm \setbox1=\hbox{$a$} \showbox1}
+\setbox1=\hbox{$\mathchoice{a}{\showlists b}{c}{d}^{\mathchoice{a}{b}{c}{d}}$} \showbox1
+{\catcode`\~=13 \def~{\alpha}\mathcode`\~="8000
+\setbox1=\hbox{$a~b$} \showbox1}
+\setbox1=\hbox{$\mathchar"1350+\delimiter"4162362+\radical"270370 x+\mathaccent"7016 a$} \showbox1
+\mathchardef\foo="0141 \setbox1=\hbox{$\foo\fam1 \mathchar"7141$} \showbox1
+\setbox1=\hbox{$\vcenter to 20pt{\vfil\hbox{X}}\mathsurround=5pt$} \showbox1
+\setbox1=\hbox{\mathsurround=2pt $a$ $\mathsurround=7pt b$} \showbox1
+{\textfont2=\nullfont \setbox1=\hbox{$a$} \showbox1}
+\setbox1=\hbox{$\left(\begingroup a\over b\middle/ c\endgroup\right)$} \showbox1
+\eqno
+\hsize=100pt \parindent=0pt
+\binoppenalty=0 \relpenalty=-50
+Some text $a+b+c+d+e+f+g+h=i+j+k+l+m+n+o+p$ and more $x=y$ text here.\par
+\showlists
+$$a\showthe\predisplaysize \showthe\displaywidth \showthe\displayindent$ x
+$$a\halign{#\cr b\cr}$$
+\noindent\hangindent=20pt \hangafter=-3 text
+$$\showthe\displaywidth \showthe\displayindent \showthe\predisplaysize b\over c\showlists$$
+\parshape 3 1pt 50pt 2pt 60pt 3pt 70pt text $$\showthe\displaywidth\showthe\displayindent$$
+\par
+\bye

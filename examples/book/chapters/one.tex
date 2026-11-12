@@ -1,0 +1,29 @@
+\centerline{\bf 1. Beginnings}
+\bigskip
+
+Every book starts with a blank page and an idea. This chapter is read with
+{\tt\char`\\input chapters/one}, the way chapters of a long book are kept in
+separate files, and rtex follows the input stack exactly as TeX does.
+
+\def\lorem{Typesetting a book is mostly a matter of patience: words are set
+into lines, lines are stacked into pages, and pages are shipped one after the
+other until the last word has found its place. }
+\lorem\lorem\lorem
+
+\lorem\lorem\lorem\lorem
+
+\beginsection Lines and paragraphs
+
+Each paragraph is broken into lines of equal width by Knuth and Plass's
+algorithm, the glue between the words stretching or shrinking so that both
+margins are straight. \lorem\lorem
+
+\lorem\lorem\lorem\lorem\lorem
+
+\beginsection Pages
+
+When a page is full it is shipped out by plain TeX's output routine, with the
+page number at the bottom. \lorem\lorem\lorem
+
+\lorem\lorem\lorem\lorem\lorem\lorem
+\vfill\eject

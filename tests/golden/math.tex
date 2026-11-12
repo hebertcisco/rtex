@@ -1,0 +1,32 @@
+\input plain
+\tracingonline=1 \showboxdepth=100 \showboxbreadth=10000 \tracingoutput=1
+\hsize=300pt \parindent=10pt
+\setbox1=\hbox{$x^2+y_1^{n+1}=z_{i,j}$} \showbox1
+\setbox1=\hbox{$a\over b$} \showbox1
+\setbox1=\hbox{${a+1\over b-1}+{1\atop2}+{x\above1pt y}$} \showbox1
+\setbox1=\hbox{${n\choose k}+{a\overwithdelims[] b}$} \showbox1
+\setbox1=\hbox{$\sqrt{x^2+1}+\sqrt{\sqrt{y}}$} \showbox1
+\setbox1=\hbox{$\left(a\over b\right)+\left\{x\middle|y\right\}$} \showbox1
+\setbox1=\hbox{$\sum_{i=1}^n x_i+\int_0^\infty f(t)\,dt+\lim_{x\to0}\sin x$} \showbox1
+\setbox1=\hbox{$\hat a+\tilde{xy}+\vec v+\overline{a+b}+\underline c$} \showbox1
+\setbox1=\hbox{$\mathchoice{D}{T}{S}{s}\scriptstyle\mathchoice{D}{T}{S}{s}$} \showbox1
+\setbox1=\hbox{$\vcenter{\hbox{A}\hbox{B}}+\mathop{\rm lim\,sup}\limits_n a$} \showbox1
+\setbox1=\hbox{$a\mskip 3mu plus 2mu b\mkern-2mu c\nonscript\;d_{x\nonscript\;y}$} \showbox1
+\setbox1=\hbox{$ff\ \mathrel{:=}\ f(x)\cdot\alpha\beta-{-1}$} \showbox1
+\setbox1=\hbox{$\displaystyle\sum_{k}{1\over k^2}={\pi^2\over6}$} \showbox1
+$x+\showlists y\over z\showlists$
+\setbox1=\hbox{$\bigl(a\bigr)+\Bigg\{b\Bigg\}+\left\langle x\right\rangle$} \showbox1
+\setbox1=\hbox{$f\mathpunct{;}g\mathinner{h}{}^{\prime}x''$} \showbox1
+
+Text before $a=b$ and a display
+$$\int_0^1 x\,dx={1\over2}\eqno(1)$$
+more text after the display with $\sqrt2$ inline.
+$$a^2+b^2=c^2\leqno(2)$$
+\noindent$$x\over y$$
+Here an alignment:
+$$\halign{#\hfil&&\quad$#$\hfil\cr a&b=c\cr dd&e+f=g\cr}$$
+and a long equation number
+$$x=y\eqno\hbox{a very long equation number text here}$$
+end.
+\showlists
+\bye

@@ -1,0 +1,22 @@
+\centerline{\bf Hello from rtex}
+\bigskip
+This page was typeset by rtex, a TeX engine written in Rust. The mouth of the
+engine---tokenizing, macro expansion, conditionals and assignments---is the
+rtex-core crate; paragraphs, hyphenation, pages and the PDF come from rtex
+itself, following Knuth's {\it TeX: The Program} line by line.
+
+\def\greet#1{Hello, #1!}
+Macros work as in any TeX: \greet{world} ``Quotes'' and dashes -- like these
+--- become ligatures, and long words such as incomprehensibilities are
+hyphenated with the patterns of {\tt hyphen.tex}.
+
+Math is set as TeX sets it: $\sum_{k=1}^n k = {n(n+1)\over2}$ inline, and
+$$\int_0^\infty e^{-x^2}\,dx = {\sqrt\pi\over2}. \eqno(1)$$
+
+\medskip
+\hrule
+\medskip
+\centerline{\it A centered line between rules.}
+\medskip
+\hrule
+\bye

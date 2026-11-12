@@ -1,0 +1,47 @@
+\catcode`\{=1 \catcode`\}=2 \catcode`\#=6 \catcode`\^=7
+\tracingonline=1 \showboxdepth=100 \showboxbreadth=10000
+\scrollmode
+\showthe\pdfoutput \showthe\pdfignoreddimen \showthe\pdfeachlineheight \showthe\pdfminorversion
+\pdfoutput=1 \pdfminorversion=5 \showthe\pdfoptionpdfminorversion
+\pdfpxdimen=2pt \dimen0=3px \showthe\dimen0
+\message{[\pdftexrevision][\pdfescapestring{a(b)\string\\c}][\pdfescapename{a b/c#}]}
+\message{[\pdfescapehex{AZ}][\pdfunescapehex{414243}][\pdfstrcmp{a}{b}][\pdfmdfivesum{abc}]}
+\message{[\pdfmatch{b(c+)d}{abcccde}][\pdflastmatch0][\pdflastmatch1][\pdflastmatch5]}
+\message{[\pdfmatch icase{^A}{abc}][\pdfmatch{x}{abc}][\pdfmatch{a(}{abc}]}
+\pdfsetrandomseed 271828
+\message{[\pdfuniformdeviate 1000][\pdfuniformdeviate 1000][\pdfnormaldeviate][\pdfrandomseed]}
+\message{[\ifpdfabsnum -5=5 yes\else no\fi][\ifpdfabsdim -1pt<2pt yes\else no\fi]}
+\message{[\pdfcolorstackinit page direct{0 g}][\pdfcolorstackinit{1 0 0 rg}]}
+\setbox0=\hbox{\pdfliteral{q 1 0 0 1 0 0 cm}\pdfliteral direct{BT}\pdfliteral page{ET}%
+\pdfliteral shipout{\relax}\pdfcolorstack0 push{1 g}\pdfcolorstack 0 pop\pdfcolorstack1 set{0 g}%
+\pdfcolorstack1 current\pdfsetmatrix{1 0 0 1}\pdfsave\pdfrestore
+\pdfstartlink height 5pt attr{/Border[0 0 0]} goto name{sec}\pdfendlink
+\pdfstartlink user{/S /URI /URI (http://x)}\pdfendlink
+\pdfstartlink goto num 3\pdfendlink
+\pdfstartlink goto page 2 {/Fit}\pdfendlink
+\pdfstartlink goto file{other.pdf} name{x} newwindow\pdfendlink
+\pdfannot width 10pt height 5pt depth 1pt{/Subtype /Text /Contents (hi)}%
+\pdfdest name{sec} xyz zoom 2000\pdfdest num 7 fitr width 3pt\pdfdest name{a} fith
+\pdfthread num 1 \pdfstartthread attr{/I << >>} name{t}\pdfendthread
+\pdfsavepos\pdfinterwordspaceon\pdfinterwordspaceoff\pdffakespace
+\pdfrunninglinkoff\pdfrunninglinkon\pdfsnaprefpoint\pdfsnapycomp 500 }
+\showbox0
+\pdfdest name{sec} fit
+\pdfobj{<< /A 1 >>}\message{[\the\pdflastobj]}
+\pdfobj reserveobjnum \message{[\the\pdflastobj]}
+\pdfobj useobjnum \pdflastobj stream attr{/Type /X} {data}\message{[\the\pdflastobj]}
+\pdfannot reserveobjnum \message{[\the\pdflastannot]}
+\setbox1=\hbox{\pdfrefobj7 \pdfrefobj8 }\showbox1
+\setbox2=\hbox to 20pt{\vrule height 7pt depth 2pt}
+\pdfxform attr{/A 1} resources{/B 2} 2 \message{[\the\pdflastxform]}
+\setbox3=\hbox{x\pdfrefxform\pdflastxform y}\showbox3
+\message{[\the\wd3][\the\ht3][\the\dp3][\pdfxformname\pdflastxform]}
+\pdfcolorstack 9 push{1 g}
+\pdfcolorstack 0 frob
+\message{[\the\pdflastxpos][\the\pdflastypos][\the\pdfretval][\the\pdflastlink]}
+\pdfinfo{/Title (x)}\pdfcatalog{/PageMode /UseOutlines}\pdfnames{/X 1}\pdftrailer{/Y 2}
+\pdfoutline goto name{sec} count -1 {Section}\pdfoutline user{<< >>}{Sub}
+\pdfglyphtounicode{ff}{0066 0066}\pdfmapline{+cmr10 CMR10 <cmr10.pfb}
+\showthe\pdfpageattr \pdfpageattr{/Rotate 0}\showthe\pdfpageattr
+\pdfrefobj 99
+\end
