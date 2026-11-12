@@ -8,6 +8,12 @@ All notable changes to rtex are recorded here. The format follows
 
 ### Added
 
+- `\letterspacefont` accepts the `nolig` keyword; the letterspaced copy
+  retags ligature/kern entries away (`set_no_ligatures` semantics, pdfTeX
+  §1354).
+- `\pdfcopyfont` refuses to copy letterspaced fonts and fonts with
+  `\pdffontexpand` parameters, as pdfTeX does (`copy_font_info`). Font slots
+  now track their provenance (`Regular`/`Letterspaced`/`Copied`).
 - EPUB 3 output: `--to pdf,epub`, `--epub-layout reflow|fixed`, and
   `--title`/`--author`/`--lang`/`--identifier`. Packaging is deterministic:
   stored `mimetype`, OCF container, OPF 3, `nav.xhtml`, `toc.ncx`, and one
@@ -38,6 +44,10 @@ All notable changes to rtex are recorded here. The format follows
 
 ### Changed
 
+- `\letterspacefont` warns when the base font has a zero em size
+  (`\fontdimen6`), as pdfTeX does.
+- Letterspaced width adjustment rounds half away from zero, matching
+  `round_xn_over_d`.
 - `CompileOptions` gained `engine`, `interaction`, `format` and `max_passes`;
   `Rendering` gained `document`, `passes` and `pass_times`. Both default, so
   existing literals keep working with `..Default::default()`.
