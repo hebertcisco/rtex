@@ -377,11 +377,11 @@ fn run_rasterize(args: &RasterizeArgs) -> ExitCode {
         .output
         .clone()
         .unwrap_or_else(|| args.input.with_extension(format.extension()));
-    if let Some(parent) = out.parent().filter(|p| !p.as_os_str().is_empty()) {
-        if let Err(e) = fs::create_dir_all(parent) {
-            eprintln!("{}: cannot write {}: {e}", prog_name(), out.display());
-            return ExitCode::from(2);
-        }
+    if let Some(parent) = out.parent().filter(|p| !p.as_os_str().is_empty())
+        && let Err(e) = fs::create_dir_all(parent)
+    {
+        eprintln!("{}: cannot write {}: {e}", prog_name(), out.display());
+        return ExitCode::from(2);
     }
     let page = args.page.max(1).to_string();
     let dpi = args.dpi.max(1).to_string();
@@ -574,10 +574,10 @@ fn run_build(args: &BuildArgs) -> ExitCode {
             } else {
                 None
             };
-            if !formats.pdf() {
-                if let Some(pdf_path) = report.pdf_path.take() {
-                    let _ = fs::remove_file(pdf_path);
-                }
+            if !formats.pdf()
+                && let Some(pdf_path) = report.pdf_path.take()
+            {
+                let _ = fs::remove_file(pdf_path);
             }
             if formats.pdf() || formats.epub() {
                 print_report(args, &report, epub_path.as_deref(), image_path.as_deref());
@@ -893,10 +893,11 @@ fn print_report(args: &BuildArgs, report: &CompileReport, epub: Option<&Path>, i
     if let Err(error) = written {
         eprintln!("{}: cannot write to standard output: {error}", prog_name());
     }
-    if !args.json && !args.quiet {
-        if let Some(path) = image {
-            let _ = writeln!(stdout, "{}: Image written on {}.", prog_name(), path.display());
-        }
+    if !args.json
+        && !args.quiet
+        && let Some(path) = image
+    {
+        let _ = writeln!(stdout, "{}: Image written on {}.", prog_name(), path.display());
     }
     if args.profile && !args.json {
         print_profile(report);
