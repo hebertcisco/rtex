@@ -275,6 +275,7 @@ pub(crate) fn install(eng: &mut Eng) {
             eng.define_primitive("pdfoptionpdfminorversion", cmd::ASSIGN_INT, ints[0] as u32 + 10);
         }
         let default = match name {
+            "pdfoutput" => 1,
             "pdfcompresslevel" => 9,
             "pdfdecimaldigits" => 3,
             "pdfimageresolution" => 72,
