@@ -135,7 +135,13 @@ pub(crate) fn letterspace_font(eng: &mut Eng, source: usize, e: i32, nolig: bool
         return Ok(None);
     };
     if base_tfm.params().get(5).copied().unwrap_or(0) == 0 {
-        super::pdftex::pdf_warning(eng, "\\letterspacefont", "font has zero em size (\\fontdimen6)", true, true);
+        super::pdftex::pdf_warning(
+            eng,
+            "\\letterspacefont",
+            "font has zero em size (\\fontdimen6)",
+            true,
+            true,
+        );
     }
     let mut tfm = base_tfm.letterspaced(e);
     if nolig {

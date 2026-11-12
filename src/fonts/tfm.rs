@@ -474,6 +474,26 @@ mod tests {
     }
 
     #[test]
+    fn letterspaced_uses_round_half_away_from_zero() {
+        let Some(f) = cmr10(-1000) else { return };
+        let wider = f.letterspaced(100);
+        let quad = f.params()[5];
+        let delta = ((i64::from(quad) * 100 + 500) / 1000) as i32;
+        assert_eq!(wider.width(u32::from('x')), f.width(u32::from('x')) + delta);
+        let narrower = f.letterspaced(-100);
+        assert_eq!(narrower.width(u32::from('x')), f.width(u32::from('x')) - delta);
+    }
+
+    #[test]
+    fn without_lig_kern_clears_ligature_programs() {
+        let Some(f) = cmr10(-1000) else { return };
+        assert!(f.program_of(u32::from('f')).is_some());
+        let stripped = f.without_lig_kern();
+        assert!(stripped.program_of(u32::from('f')).is_none());
+        assert_eq!(stripped.tag(u32::from('f')), Tag::None);
+    }
+
+    #[test]
     fn garbage_is_rejected() {
         assert_eq!(Tfm::parse(&[0; 16], -1000).err(), Some(BadTfm));
         assert_eq!(Tfm::parse(&[], -1000).err(), Some(BadTfm));

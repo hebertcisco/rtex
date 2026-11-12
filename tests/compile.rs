@@ -271,3 +271,41 @@ fn compile_resolves_project_relative_inputs_from_cwd() {
     assert_eq!(report.rendering.pages, 1);
     assert!(transcript(&report.rendering).contains("Included from project root.") || report.pdf_path.is_some());
 }
+
+#[test]
+fn letterspacefont_and_pdfcopyfont_restrictions_are_enforced() {
+    if !tex_live() {
+        return;
+    }
+    let ok = render_plain("\\font\\base=cmr10\n\\letterspacefont\\ls=\\base by 100\n\\ls Letterspaced text.\n\\bye");
+    let r = ok.expect("render");
+    assert_eq!(r.history, History::Spotless, "{}", transcript(&r));
+
+    let nolig =
+        render_plain("\\font\\base=cmr10\n\\letterspacefont\\ls=\\base by 100 nolig\n\\ls Letterspaced text.\n\\bye");
+    let r = nolig.expect("render with nolig");
+    assert_eq!(r.history, History::Spotless, "{}", transcript(&r));
+
+    let copied = render_plain("\\font\\base=cmr10\n\\pdfcopyfont\\cp=\\base\n\\cp Copied text.\n\\bye");
+    let r = copied.expect("render of a plain copy");
+    assert_eq!(r.history, History::Spotless, "{}", transcript(&r));
+
+    let refused =
+        render_plain("\\font\\base=cmr10\n\\letterspacefont\\ls=\\base by 100\n\\pdfcopyfont\\cp=\\ls\n\\bye");
+    let r = refused.expect("render refuses to copy a letterspaced font");
+    assert_ne!(r.history, History::Spotless, "{}", transcript(&r));
+    assert!(
+        transcript(&r).contains("cannot copy a letterspaced font"),
+        "{}",
+        transcript(&r)
+    );
+
+    let expanded = render_plain("\\font\\base=cmr10\n\\pdffontexpand\\base 20 20 1\n\\pdfcopyfont\\cp=\\base\n\\bye");
+    let r = expanded.expect("render refuses to copy an expanded font");
+    assert_ne!(r.history, History::Spotless, "{}", transcript(&r));
+    assert!(
+        transcript(&r).contains("cannot copy an expanded font"),
+        "{}",
+        transcript(&r)
+    );
+}

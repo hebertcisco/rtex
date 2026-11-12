@@ -254,8 +254,8 @@ impl Stomach for Typesetter {
         fonts::load_font(eng, file, size)
     }
 
-    fn letterspace_font(eng: &mut Eng, source: usize, e: i32) -> Res<Option<FontInfo>> {
-        fonts::letterspace_font(eng, source, e)
+    fn letterspace_font(eng: &mut Eng, source: usize, e: i32, nolig: bool) -> Res<Option<FontInfo>> {
+        fonts::letterspace_font(eng, source, e, nolig)
     }
 
     fn copy_font(eng: &mut Eng, source: usize) -> Res<Option<FontInfo>> {
