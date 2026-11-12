@@ -254,6 +254,14 @@ impl Stomach for Typesetter {
         fonts::load_font(eng, file, size)
     }
 
+    fn letterspace_font(eng: &mut Eng, source: usize, e: i32) -> Res<Option<FontInfo>> {
+        fonts::letterspace_font(eng, source, e)
+    }
+
+    fn copy_font(eng: &mut Eng, source: usize) -> Res<Option<FontInfo>> {
+        fonts::copy_font(eng, source)
+    }
+
     fn font_has_char(eng: &Eng, f: i32, c: u32) -> bool {
         usize::try_from(f).is_ok_and(|f| eng.stomach.fonts.has_char(f, c))
     }
