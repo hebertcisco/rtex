@@ -12,11 +12,25 @@ const DEFAULT_SKEW_CHAR: usize = 47;
 const TRACING_LOST_CHARS: usize = 35;
 const TRACING_ONLINE: usize = 29;
 
+/// The provenance of a font slot, for the pdfTeX restrictions on `\pdfcopyfont`
+/// (`copy_font_info`, pdftex.web).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(crate) enum FontKind {
+    /// Loaded from a file with `\font`.
+    #[default]
+    Regular,
+    /// Created by `\letterspacefont`.
+    Letterspaced,
+    /// Created by `\pdfcopyfont`.
+    Copied,
+}
+
 /// The metrics of every loaded font; index 0 is `\nullfont`.
 #[derive(Clone, Debug, Default)]
 pub struct FontStore {
     fonts: Vec<Option<Tfm>>,
     names: Vec<String>,
+    kinds: Vec<FontKind>,
 }
 
 impl FontStore {
@@ -31,12 +45,23 @@ impl FontStore {
     }
 
     pub(crate) fn insert(&mut self, f: usize, tfm: Tfm, name: String) {
+        self.insert_kind(f, tfm, name, FontKind::Regular);
+    }
+
+    pub(crate) fn insert_kind(&mut self, f: usize, tfm: Tfm, name: String, kind: FontKind) {
         if self.fonts.len() <= f {
             self.fonts.resize(f + 1, None);
             self.names.resize(f + 1, String::new());
+            self.kinds.resize(f + 1, FontKind::Regular);
         }
         self.fonts[f] = Some(tfm);
         self.names[f] = name;
+        self.kinds[f] = kind;
+    }
+
+    /// The provenance of font `f`.
+    pub(crate) fn kind(&self, f: usize) -> FontKind {
+        self.kinds.get(f).copied().unwrap_or_default()
     }
 
     /// Number of slots, `\nullfont` included.
@@ -100,7 +125,8 @@ pub(crate) fn load_font(eng: &mut Eng, file: &[u32], size: i32) -> Res<Option<Fo
 }
 
 /// Creates a letterspaced copy of font `source` (`\letterspacefont`).
-pub(crate) fn letterspace_font(eng: &mut Eng, source: usize, e: i32) -> Res<Option<FontInfo>> {
+/// `nolig` retags the copy's ligature/kern entries away (`set_no_ligatures`, pdfTeX §1354).
+pub(crate) fn letterspace_font(eng: &mut Eng, source: usize, e: i32, nolig: bool) -> Res<Option<FontInfo>> {
     let Some(base_tfm) = eng.stomach.fonts.get(source).cloned() else {
         return Ok(None);
     };
@@ -108,7 +134,13 @@ pub(crate) fn letterspace_font(eng: &mut Eng, source: usize, e: i32) -> Res<Opti
     let Some(base_info) = base_info else {
         return Ok(None);
     };
-    let tfm = base_tfm.letterspaced(e);
+    if base_tfm.params().get(5).copied().unwrap_or(0) == 0 {
+        super::pdftex::pdf_warning(eng, "\\letterspacefont", "font has zero em size (\\fontdimen6)", true, true);
+    }
+    let mut tfm = base_tfm.letterspaced(e);
+    if nolig {
+        tfm = tfm.without_lig_kern();
+    }
     let base_name = eng.stomach.fonts.name(source).to_owned();
     let mut display_name = base_name.clone();
     if e >= 0 {
@@ -128,12 +160,21 @@ pub(crate) fn letterspace_font(eng: &mut Eng, source: usize, e: i32) -> Res<Opti
         ..FontInfo::null()
     };
     // Store base name for PDF/font-file lookup; \fontname uses core FontInfo.name.
-    eng.stomach.fonts.insert(f, tfm, base_name);
+    eng.stomach.fonts.insert_kind(f, tfm, base_name, FontKind::Letterspaced);
     Ok(Some(info))
 }
 
-/// Creates a copy of font `source` (`\pdfcopyfont`).
+/// Creates a copy of font `source` (`\pdfcopyfont`, pdftex.web `copy_font_info`).
+/// Refuses to copy letterspaced fonts and fonts with expansion parameters, as pdfTeX does.
 pub(crate) fn copy_font(eng: &mut Eng, source: usize) -> Res<Option<FontInfo>> {
+    if eng.stomach.fonts.kind(source) == FontKind::Letterspaced {
+        super::pdftex::pdf_error(eng, "\\pdfcopyfont", "cannot copy a letterspaced font")?;
+        return Ok(None);
+    }
+    if eng.stomach.font_codes.expand.contains_key(&source) {
+        super::pdftex::pdf_error(eng, "\\pdfcopyfont", "cannot copy an expanded font")?;
+        return Ok(None);
+    }
     let Some(base_tfm) = eng.stomach.fonts.get(source).cloned() else {
         return Ok(None);
     };
@@ -153,7 +194,7 @@ pub(crate) fn copy_font(eng: &mut Eng, source: usize) -> Res<Option<FontInfo>> {
         params: base_info.params.clone(),
         ..FontInfo::null()
     };
-    eng.stomach.fonts.insert(f, base_tfm, base_name);
+    eng.stomach.fonts.insert_kind(f, base_tfm, base_name, FontKind::Copied);
     Ok(Some(info))
 }
 

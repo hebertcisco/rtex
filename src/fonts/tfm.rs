@@ -414,13 +414,26 @@ impl Tfm {
         (self.bc, self.ec)
     }
 
+    /// Returns a copy without the ligature/kern program: every character with a
+    /// ligature/kern tag is retagged `None` (`set_no_ligatures`, pdfTeX §1354; the `nolig` keyword
+    /// of `\letterspacefont`).
+    pub fn without_lig_kern(&self) -> Self {
+        let mut copy = self.clone();
+        for info in copy.chars.iter_mut() {
+            if info.tag == 1 {
+                info.tag = 0;
+            }
+        }
+        copy
+    }
+
     /// Returns a copy with character widths increased for letterspacing
-    /// (`\letterspacefont`), adding `round(quad * e / 1000)` to each width.
+    /// (`\letterspacefont`), adding `round(quad * e / 1000)` to each width (round half away from zero).
     pub fn letterspaced(&self, e: i32) -> Self {
         let mut copy = self.clone();
         let quad = self.params.get(5).copied().unwrap_or(0);
-        let delta = ((quad as i64) * (e as i64) + 500) / 1000;
-        let delta = delta as i32;
+        let t = i64::from(quad) * i64::from(e);
+        let delta = (if t >= 0 { (t + 500) / 1000 } else { (t - 500) / 1000 }) as i32;
         for (i, w) in copy.widths.iter_mut().enumerate() {
             if i != 0 {
                 *w += delta;
